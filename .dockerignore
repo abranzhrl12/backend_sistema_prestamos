@@ -1,0 +1,14 @@
+.git
+.agents
+.codex
+.env
+.env.*
+!.env.example
+tmp
+logs
+docs
+tests
+docker-compose.yml
+docker-compose.test.yml
+README.md
+*.log
