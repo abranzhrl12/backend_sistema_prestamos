@@ -84,13 +84,13 @@ Variables obligatorias (del entorno o de `.env`): `DATABASE_URL`, `SEED_ADMIN_EM
 |---|---|---|
 | `AUTO_MIGRATE` | `false` | Aplica las migraciones pendientes y otorga DML a `APP_DB_USER`. Permitido en production. |
 | `AUTO_SEED` | `false` | Asegura el superadmin de plataforma (idempotente). **Rechazado con `APP_ENV=production`**: en producción se ejecuta a mano con `go run ./cmd/seed`. |
-| `MIGRATE_DATABASE_URL` | vacío | Rol dueño para migrar. Si está vacío se usa `DATABASE_URL`. En production no puede usar `sslmode=disable`. |
+| `MIGRATE_DATABASE_URL` | vacío | Sobrescritura opcional solo para desarrollo cuando las migraciones usan un rol dueño distinto. En producción se deja vacío y se usa `DATABASE_URL`. |
 | `APP_DB_USER` | `app_user` | Rol que recibe los permisos DML tras migrar. |
 | `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD` | vacío | Obligatorias si `AUTO_SEED=true` (sin ellas el arranque falla con un error de configuración). |
 | `SEED_ADMIN_NAME` | `Platform Admin` | Nombre del superadmin. |
 
 - Orden: migraciones y permisos, después el seed; luego se abre el pool y se escucha. Cualquier fallo aborta el arranque.
-- Las migraciones usan `MIGRATE_DATABASE_URL` (o `DATABASE_URL`); el seed usa `DATABASE_URL`, igual que `cmd/seed`.
+- En producción, la aplicación, las migraciones y el seed usan la misma `DATABASE_URL`. En desarrollo, `MIGRATE_DATABASE_URL` puede sustituirla únicamente para migrar con un rol dueño.
 - El log indica qué migraciones se aplicaron y si el superadmin se creó o ya existía. Nunca registra contraseñas ni el email del superadmin.
 - `Config` no revela secretos en `String()`, `%v`, `%+v` ni `%#v`.
 

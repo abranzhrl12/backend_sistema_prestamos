@@ -2,7 +2,7 @@
 //
 //	go run ./cmd/migrate up|status
 //
-// Variables: MIGRATE_DATABASE_URL (rol dueño/superusuario) o, si falta, DATABASE_URL;
+// Variables: DATABASE_URL; MIGRATE_DATABASE_URL es una sobrescritura opcional para desarrollo;
 // APP_DB_USER (rol de la aplicación, def. app_user).
 package main
 
@@ -42,7 +42,7 @@ func run(ctx context.Context, args []string, getenv func(string) string, out io.
 		url = getenv("DATABASE_URL")
 	}
 	if url == "" {
-		return errors.New("falta MIGRATE_DATABASE_URL (o DATABASE_URL)")
+		return errors.New("falta DATABASE_URL")
 	}
 	pool, err := db.NewPool(ctx, url, db.PoolOptions{MaxConns: 2, MinConns: 1})
 	if err != nil {
