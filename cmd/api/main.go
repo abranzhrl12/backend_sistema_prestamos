@@ -1,7 +1,11 @@
-// @title        Prestamos API
-// @version      1.0
-// @description  API multitenant de préstamos
-// @BasePath     /api/v1
+// @title        Préstamos API
+// @version      1.1.0
+// @description  API multitenant para préstamos personales, clientes, caja y cobros.
+// @description  Las operaciones protegidas aceptan `Authorization: Bearer <access_token>`.
+// @description  La aplicación web también autentica con cookies HttpOnly y exige X-CSRF-Token para mutaciones.
+// @contact.name  Soporte Préstamos
+// @BasePath      /api/v1
+// @schemes       https http
 // @securityDefinitions.apikey BearerAuth
 // @in header
 // @name Authorization

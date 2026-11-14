@@ -77,7 +77,7 @@ func (h *Handler) CreateTenant(c fiber.Ctx) error {
 // @Param    limit   query int    false "1-100 (def. 20)"
 // @Param    offset  query int    false "desplazamiento"
 // @Param    include_total query bool false "calcular total exacto (más lento)"
-// @Success  200 {object} httpx.Page[TenantSummary]
+// @Success  200 {object} TenantPageResponse
 // @Failure  400 {object} httpx.ErrorResponse
 // @Failure  403 {object} httpx.ErrorResponse
 // @Router   /admin/tenants [get]

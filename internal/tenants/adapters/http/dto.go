@@ -4,6 +4,7 @@ package http
 import (
 	"time"
 
+	"prestamos/internal/platform/httpx"
 	"prestamos/internal/tenants/domain"
 )
 
@@ -31,6 +32,18 @@ type UserSummary struct {
 	Roles     []string  `json:"roles" example:"owner"`
 	Active    bool      `json:"active"`
 	CreatedAt time.Time `json:"created_at"`
+}
+
+// TenantPageResponse documents the standard paged tenant response.
+type TenantPageResponse struct {
+	Items []TenantSummary `json:"items"`
+	Meta  httpx.PageMeta  `json:"meta"`
+}
+
+// UserPageResponse documents the standard paged user response.
+type UserPageResponse struct {
+	Items []UserSummary  `json:"items"`
+	Meta  httpx.PageMeta `json:"meta"`
 }
 
 // OwnerRequest son los datos del primer usuario (owner) de la empresa nueva.

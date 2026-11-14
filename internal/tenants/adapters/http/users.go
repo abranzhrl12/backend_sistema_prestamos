@@ -19,7 +19,7 @@ import (
 // @Param    limit   query int    false "1-100 (def. 20)"
 // @Param    offset  query int    false "desplazamiento"
 // @Param    include_total query bool false "calcular total exacto (más lento)"
-// @Success  200 {object} httpx.Page[UserSummary]
+// @Success  200 {object} UserPageResponse
 // @Failure  404 {object} httpx.ErrorResponse
 // @Router   /admin/tenants/{id}/users [get]
 func (h *Handler) ListUsers(c fiber.Ctx) error {

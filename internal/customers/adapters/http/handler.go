@@ -72,6 +72,12 @@ type CustomerResponse struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+// CustomerPageResponse documents the standard paged customer response.
+type CustomerPageResponse struct {
+	Items []CustomerResponse `json:"items"`
+	Meta  httpx.PageMeta     `json:"meta"`
+}
+
 // Create godoc
 // @Summary  Crear cliente
 // @Tags     customers
@@ -165,7 +171,7 @@ func (h *Handler) Get(c fiber.Ctx) error {
 // @Param    limit  query int    false "1-100 (def. 20)"
 // @Param    offset query int    false "desplazamiento"
 // @Param    include_total query bool false "calcular total exacto (más lento)"
-// @Success  200 {object} httpx.Page[CustomerResponse]
+// @Success  200 {object} CustomerPageResponse
 // @Failure  400 {object} httpx.ErrorResponse
 // @Router   /customers [get]
 func (h *Handler) List(c fiber.Ctx) error {

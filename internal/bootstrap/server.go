@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
+	"github.com/gofiber/contrib/v3/swaggerui"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/requestid"
 
@@ -12,6 +13,7 @@ import (
 	customershttp "prestamos/internal/customers/adapters/http"
 	"prestamos/internal/platform/httpx"
 	"prestamos/internal/platform/obs"
+	"prestamos/internal/platform/openapi"
 )
 
 // newFiberApp crea Fiber con el JSON de la API, los límites HTTP y la cadena de middlewares
@@ -28,7 +30,29 @@ func newFiberApp(log *slog.Logger) *fiber.App {
 	})
 	app.Use(requestid.New(), obs.Context(), obs.AccessLog(log), obs.Recover(log))
 	app.Get("/healthz", func(c fiber.Ctx) error { return c.SendString("ok") })
+	registerDocumentation(app)
 	return app
+}
+
+// registerDocumentation publishes a generated contract and a UI without relying on files at runtime.
+func registerDocumentation(app *fiber.App) {
+	app.Get("/openapi.json", openAPIContract(openapi.JSON, "application/json; charset=utf-8"))
+	app.Get("/openapi.yaml", openAPIContract(openapi.YAML, "application/yaml; charset=utf-8"))
+	app.Use(swaggerui.New(swaggerui.Config{
+		BasePath:    "/",
+		FileContent: openapi.JSON,
+		Path:        "docs",
+		Title:       "Préstamos API · Swagger UI",
+		CacheAge:    300,
+	}))
+}
+
+func openAPIContract(content []byte, contentType string) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		c.Set(fiber.HeaderContentType, contentType)
+		c.Set(fiber.HeaderCacheControl, "public, max-age=300")
+		return c.Send(content)
+	}
 }
 
 // registerRoutes monta /api/v1; cada grupo fija su módulo para los logs y las métricas.

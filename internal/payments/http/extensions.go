@@ -17,6 +17,12 @@ type extensionBody struct {
 	Note               string `json:"note"`
 }
 
+// ExtensionPageResponse documents the paged agreement history.
+type ExtensionPageResponse struct {
+	Items []payments.Extension `json:"items"`
+	Meta  httpx.PageMeta       `json:"meta"`
+}
+
 // Extend records an explicit agreement and preserves the previous schedule.
 // @Summary Ampliar el plazo de un préstamo
 // @Tags Cobros
@@ -57,7 +63,7 @@ func (h *Handler) Extend(c fiber.Ctx) error {
 // @Tags Cobros
 // @Security BearerAuth
 // @Param id path string true "Préstamo"
-// @Success 200 {object} map[string]interface{}
+// @Success 200 {object} ExtensionPageResponse
 // @Router /loans/{id}/extensions [get]
 func (h *Handler) Extensions(c fiber.Ctx) error {
 	if _, e := uuid.Parse(c.Params("id")); e != nil {

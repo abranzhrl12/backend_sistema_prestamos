@@ -52,7 +52,7 @@ Los módulos no se importan entre sí por tipos internos; se comunican por inter
 - DTOs de request/response viven en el adaptador HTTP, nunca se exponen entidades de dominio.
 - Validar forma en el borde (`go-playground/validator`); invariantes de negocio en el dominio.
 - Errores de dominio tipados → mapeo a HTTP solo en el adaptador. Formato: `{"error": "mensaje"}`.
-- Documentar cada handler con anotaciones swag; regenerar con `swag init -g cmd/api/main.go -o docs`.
+- Documentar cada handler con anotaciones swag; regenerar el contrato embebido con `swag init -g cmd/api/main.go -o internal/platform/openapi --parseInternal`.
 
 ## Reglas de código
 - **KISS / YAGNI:** nada de abstracciones hasta tener 2 usos reales. Sin generics ni reflexión innecesaria.
@@ -123,6 +123,6 @@ go run ./cmd/api                      # requiere DATABASE_URL, JWT_SECRET (ver .
 go run ./cmd/migrate up               # migraciones manuales (MIGRATE_DATABASE_URL o DATABASE_URL)
 go run ./cmd/seed                     # superadmin manual (obligatorio en production)
 goose -dir migrations postgres "$DATABASE_URL" up
-swag init -g cmd/api/main.go -o docs
+swag init -g cmd/api/main.go -o internal/platform/openapi --parseInternal
 go test ./... && (cd authkit && go test ./...)
 ```

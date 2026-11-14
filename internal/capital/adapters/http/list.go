@@ -9,6 +9,12 @@ import (
 	"prestamos/internal/platform/httpx"
 )
 
+// MovementCursorPageResponse documents the cursor-paginated movement feed.
+type MovementCursorPageResponse struct {
+	Items []MovementResponse `json:"items"`
+	Meta  httpx.CursorMeta   `json:"meta"`
+}
+
 // List godoc
 // @Summary  Listar movimientos de caja (paginación por cursor, id DESC)
 // @Tags     capital
@@ -19,7 +25,7 @@ import (
 // @Param    type  query string false "tipo de movimiento"
 // @Param    from  query string false "RFC3339; created_at >= from"
 // @Param    to    query string false "RFC3339; created_at <= to"
-// @Success  200 {object} httpx.CursorPage[MovementResponse]
+// @Success  200 {object} MovementCursorPageResponse
 // @Failure  400 {object} httpx.ErrorResponse
 // @Router   /capital/movements [get]
 func (h *Handler) List(c fiber.Ctx) error {

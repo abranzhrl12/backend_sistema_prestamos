@@ -8,13 +8,19 @@ import (
 	"strings"
 )
 
+// CollectionPageResponse documents the paged outstanding-installment response.
+type CollectionPageResponse struct {
+	Items []payments.Collection `json:"items"`
+	Meta  httpx.PageMeta        `json:"meta"`
+}
+
 // Collections lists outstanding installments belonging to the authenticated company.
 // @Summary Cuotas por cobrar
 // @Tags Cobros
 // @Security BearerAuth
 // @Param status query string false "all, overdue, today, upcoming"
 // @Param q query string false "Nombre o documento"
-// @Success 200 {object} map[string]interface{}
+// @Success 200 {object} CollectionPageResponse
 // @Router /collections [get]
 func (h *Handler) Collections(c fiber.Ctx) error {
 	page, e := httpx.ParsePage(c)

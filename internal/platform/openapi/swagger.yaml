@@ -1,0 +1,2157 @@
+basePath: /api/v1
+definitions:
+  auth.ChangePasswordRequest:
+    properties:
+      current_password:
+        type: string
+      new_password:
+        type: string
+    type: object
+  auth.LoginRequest:
+    properties:
+      email:
+        example: admin@acme.com
+        type: string
+      password:
+        example: s3cret
+        type: string
+      tenant:
+        example: acme
+        type: string
+      transport:
+        description: cookie (web) | bearer (default)
+        enum:
+        - cookie
+        - bearer
+        example: cookie
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  auth.MeResponse:
+    properties:
+      must_change_password:
+        type: boolean
+      roles:
+        items:
+          type: string
+        type: array
+      tenant_id:
+        type: string
+      user_id:
+        type: string
+    type: object
+  auth.RefreshRequest:
+    properties:
+      refresh_token:
+        description: solo para clientes bearer; web usa cookie
+        type: string
+    type: object
+  auth.TokenResponse:
+    properties:
+      access_expires_at:
+        type: string
+      access_token:
+        type: string
+      refresh_expires_at:
+        type: string
+      refresh_token:
+        type: string
+      token_type:
+        type: string
+    type: object
+  http.BalanceResponse:
+    properties:
+      as_of:
+        type: string
+      capital_balance:
+        example: "800.00"
+        type: string
+      lent_outstanding:
+        example: "0.00"
+        type: string
+      movements_count:
+        example: 3
+        type: integer
+      profit_balance:
+        example: "200.00"
+        type: string
+      total_cash:
+        example: "1000.00"
+        type: string
+    type: object
+  http.CollectionPageResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/payments.Collection'
+        type: array
+      meta:
+        $ref: '#/definitions/httpx.PageMeta'
+    type: object
+  http.CreateTenantRequest:
+    properties:
+      name:
+        example: Acme S.A.C.
+        type: string
+      owner:
+        $ref: '#/definitions/http.OwnerRequest'
+      slug:
+        example: acme
+        type: string
+    type: object
+  http.CreateTenantResponse:
+    properties:
+      active:
+        type: boolean
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        example: Acme S.A.C.
+        type: string
+      owner:
+        $ref: '#/definitions/http.UserSummary'
+      slug:
+        example: acme
+        type: string
+      system:
+        type: boolean
+      temporary_password:
+        type: string
+      user_count:
+        type: integer
+    type: object
+  http.CreateUserRequest:
+    properties:
+      email:
+        example: cobrador@acme.com
+        type: string
+      full_name:
+        example: Luis Torres
+        type: string
+      password:
+        example: Secreto12345
+        type: string
+      roles:
+        items:
+          enum:
+          - owner
+          - admin
+          - cobrador
+          - viewer
+          type: string
+        type: array
+    type: object
+  http.CustomerPageResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/http.CustomerResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/httpx.PageMeta'
+    type: object
+  http.CustomerRequest:
+    properties:
+      address:
+        example: Av. Lima 123
+        type: string
+      address_reference:
+        example: frente al mercado
+        type: string
+      collector_id:
+        type: string
+      document_id:
+        example: "45678912"
+        type: string
+      email:
+        type: string
+      full_name:
+        example: Juan Pérez
+        type: string
+      notes:
+        type: string
+      occupation:
+        type: string
+      phone:
+        example: "987654321"
+        type: string
+      phone2:
+        type: string
+      whatsapp:
+        type: string
+    type: object
+  http.CustomerResponse:
+    properties:
+      address:
+        example: Av. Lima 123
+        type: string
+      address_reference:
+        example: frente al mercado
+        type: string
+      collector_id:
+        type: string
+      created_at:
+        type: string
+      document_id:
+        example: "45678912"
+        type: string
+      email:
+        type: string
+      full_name:
+        example: Juan Pérez
+        type: string
+      id:
+        type: string
+      notes:
+        type: string
+      occupation:
+        type: string
+      phone:
+        example: "987654321"
+        type: string
+      phone2:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+      whatsapp:
+        type: string
+    type: object
+  http.ExtensionPageResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/payments.Extension'
+        type: array
+      meta:
+        $ref: '#/definitions/httpx.PageMeta'
+    type: object
+  http.LoanPageResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/http.loanResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/httpx.PageMeta'
+    type: object
+  http.MovementCursorPageResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/http.MovementResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/httpx.CursorMeta'
+    type: object
+  http.MovementRequest:
+    properties:
+      amount:
+        example: "1000.00"
+        type: string
+      note:
+        example: Aporte inicial del socio
+        type: string
+      reference:
+        example: TRF-0001
+        type: string
+      type:
+        enum:
+        - contribution
+        - withdrawal
+        - adjustment_in
+        - adjustment_out
+        example: contribution
+        type: string
+    type: object
+  http.MovementResponse:
+    properties:
+      amount:
+        example: "300.00"
+        type: string
+      bucket:
+        enum:
+        - capital
+        - profit
+        type: string
+      created_at:
+        type: string
+      created_by:
+        type: string
+      direction:
+        enum:
+        - in
+        - out
+        type: string
+      id:
+        type: string
+      note:
+        type: string
+      reference:
+        type: string
+      type:
+        example: withdrawal
+        type: string
+    type: object
+  http.OwnerRequest:
+    properties:
+      email:
+        example: owner@acme.com
+        type: string
+      full_name:
+        example: Ana Ruiz
+        type: string
+      password:
+        example: Secreto12345
+        type: string
+    type: object
+  http.PaymentPageResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/http.response'
+        type: array
+      meta:
+        $ref: '#/definitions/httpx.PageMeta'
+    type: object
+  http.ProductPageResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/http.ProductResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/httpx.PageMeta'
+    type: object
+  http.ProductRequest:
+    properties:
+      active:
+        type: boolean
+      amount_max:
+        example: "5000.00"
+        type: string
+      amount_min:
+        example: "500.00"
+        type: string
+      fee_type:
+        enum:
+        - none
+        - fixed
+        - percent
+        type: string
+      fee_value:
+        example: "0"
+        type: string
+      frequency:
+        enum:
+        - daily
+        - weekly
+        - biweekly
+        - monthly
+        - single
+        type: string
+      grace_days:
+        type: integer
+      interest_type:
+        enum:
+        - flat
+        - french
+        - german
+        type: string
+      late_fee_amount:
+        example: "10.00"
+        type: string
+      late_fee_mode:
+        enum:
+        - fixed
+        - proportional
+        type: string
+      late_fee_per_day:
+        type: boolean
+      name:
+        example: Préstamo diario
+        type: string
+      rate_default:
+        example: "2.50"
+        type: string
+      rate_max:
+        example: "5.00"
+        type: string
+      rate_min:
+        example: "1.00"
+        type: string
+      rate_period:
+        enum:
+        - daily
+        - weekly
+        - biweekly
+        - monthly
+        - annual
+        type: string
+      terms_max:
+        example: 12
+        type: integer
+      terms_min:
+        example: 1
+        type: integer
+    type: object
+  http.ProductResponse:
+    properties:
+      active:
+        type: boolean
+      amount_max:
+        type: string
+      amount_min:
+        type: string
+      created_at:
+        type: string
+      fee_type:
+        type: string
+      fee_value:
+        type: string
+      frequency:
+        type: string
+      grace_days:
+        type: integer
+      id:
+        type: string
+      interest_type:
+        type: string
+      late_fee_amount:
+        type: string
+      late_fee_mode:
+        type: string
+      late_fee_per_day:
+        type: boolean
+      name:
+        type: string
+      rate_default:
+        type: string
+      rate_max:
+        type: string
+      rate_min:
+        type: string
+      rate_period:
+        type: string
+      terms_max:
+        type: integer
+      terms_min:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  http.ScheduleListResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/http.scheduleResponse'
+        type: array
+    type: object
+  http.SettingsRequest:
+    properties:
+      allocation_order:
+        enum:
+        - late_fee_interest_principal
+        - interest_principal_late_fee
+        type: string
+      allow_negative_capital:
+        type: boolean
+      currency:
+        enum:
+        - PEN
+        - USD
+        example: PEN
+        type: string
+      grace_days:
+        example: 0
+        type: integer
+      late_fee_amount:
+        example: "10.00"
+        type: string
+      late_fee_mode:
+        enum:
+        - fixed
+        - proportional
+        type: string
+      late_fee_per_day:
+        type: boolean
+      max_active_loans_per_customer:
+        example: 3
+        type: integer
+      timezone:
+        example: America/Lima
+        type: string
+    type: object
+  http.SettingsResponse:
+    properties:
+      allocation_order:
+        type: string
+      allow_negative_capital:
+        type: boolean
+      currency:
+        type: string
+      grace_days:
+        type: integer
+      is_default:
+        type: boolean
+      late_fee_amount:
+        example: "10.00"
+        type: string
+      late_fee_mode:
+        type: string
+      late_fee_per_day:
+        type: boolean
+      max_active_loans_per_customer:
+        type: integer
+      timezone:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  http.SimulationResponse:
+    properties:
+      schedule:
+        items:
+          $ref: '#/definitions/http.simulationRow'
+        type: array
+      total_due:
+        type: string
+      total_interest:
+        type: string
+      total_principal:
+        type: string
+    type: object
+  http.StatusRequest:
+    properties:
+      status:
+        enum:
+        - active
+        - inactive
+        - blocked
+        type: string
+    type: object
+  http.TemporaryPasswordResponse:
+    properties:
+      temporary_password:
+        type: string
+    type: object
+  http.TenantDetail:
+    properties:
+      active:
+        type: boolean
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        example: Acme S.A.C.
+        type: string
+      slug:
+        example: acme
+        type: string
+      system:
+        type: boolean
+      user_count:
+        type: integer
+    type: object
+  http.TenantPageResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/http.TenantSummary'
+        type: array
+      meta:
+        $ref: '#/definitions/httpx.PageMeta'
+    type: object
+  http.TenantSummary:
+    properties:
+      active:
+        type: boolean
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        example: Acme S.A.C.
+        type: string
+      slug:
+        example: acme
+        type: string
+      system:
+        type: boolean
+    type: object
+  http.UpdateTenantRequest:
+    properties:
+      active:
+        type: boolean
+      name:
+        example: Acme Holding
+        type: string
+    type: object
+  http.UpdateUserRequest:
+    properties:
+      active:
+        type: boolean
+      full_name:
+        type: string
+      password:
+        type: string
+      roles:
+        items:
+          type: string
+        type: array
+    type: object
+  http.UserPageResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/http.UserSummary'
+        type: array
+      meta:
+        $ref: '#/definitions/httpx.PageMeta'
+    type: object
+  http.UserSummary:
+    properties:
+      active:
+        type: boolean
+      created_at:
+        type: string
+      email:
+        example: owner@acme.com
+        type: string
+      full_name:
+        example: Ana Ruiz
+        type: string
+      id:
+        type: string
+      roles:
+        example:
+        - owner
+        items:
+          type: string
+        type: array
+    type: object
+  http.allocation:
+    properties:
+      interest:
+        type: string
+      late_fee:
+        type: string
+      principal:
+        type: string
+      schedule_id:
+        type: string
+    type: object
+  http.body:
+    properties:
+      amount:
+        type: string
+      distribution:
+        $ref: '#/definitions/http.distributionBody'
+      parts:
+        items:
+          $ref: '#/definitions/http.part'
+        type: array
+    type: object
+  http.distributionBody:
+    properties:
+      interest:
+        type: string
+      late_fee:
+        type: string
+      principal:
+        type: string
+    type: object
+  http.extensionBody:
+    properties:
+      additional_interest:
+        type: string
+      first_payment_date:
+        type: string
+      note:
+        type: string
+    type: object
+  http.loanResponse:
+    properties:
+      annual_rate:
+        type: string
+      customer_id:
+        type: string
+      customer_name:
+        type: string
+      disbursement_date:
+        type: string
+      frequency:
+        type: string
+      id:
+        type: string
+      interest_type:
+        type: string
+      interest_value:
+        type: string
+      principal:
+        type: string
+      product_id:
+        type: string
+      rate:
+        type: string
+      rate_period:
+        type: string
+      status:
+        type: string
+      term_count:
+        type: integer
+      term_unit:
+        type: string
+      term_value:
+        type: integer
+    type: object
+  http.part:
+    properties:
+      amount:
+        type: string
+      bank:
+        type: string
+      method:
+        type: string
+      phone:
+        type: string
+      reference:
+        type: string
+    type: object
+  http.request:
+    properties:
+      customer_id:
+        type: string
+      disbursement_date:
+        type: string
+      first_payment_date:
+        type: string
+      frequency:
+        type: string
+      installments_count:
+        type: integer
+      interest_type:
+        type: string
+      interest_value:
+        type: string
+      principal:
+        type: string
+      term_unit:
+        type: string
+      term_value:
+        type: integer
+    type: object
+  http.response:
+    properties:
+      allocations:
+        items:
+          $ref: '#/definitions/http.allocation'
+        type: array
+      amount:
+        type: string
+      id:
+        type: string
+      loan_id:
+        type: string
+      paid_at:
+        type: string
+      parts:
+        items:
+          $ref: '#/definitions/http.part'
+        type: array
+      status:
+        type: string
+    type: object
+  http.scheduleResponse:
+    properties:
+      due_date:
+        type: string
+      id:
+        type: string
+      installment_no:
+        type: integer
+      interest_due:
+        type: string
+      interest_paid:
+        type: string
+      late_fee_accrued:
+        type: string
+      late_fee_paid:
+        type: string
+      principal_due:
+        type: string
+      principal_paid:
+        type: string
+    type: object
+  http.simulationRow:
+    properties:
+      balance:
+        type: string
+      due_date:
+        type: string
+      installment_no:
+        type: integer
+      interest_due:
+        type: string
+      principal_due:
+        type: string
+      total_due:
+        type: string
+    type: object
+  httpx.CursorMeta:
+    properties:
+      has_more:
+        type: boolean
+      limit:
+        type: integer
+      next_cursor:
+        type: string
+    type: object
+  httpx.ErrorResponse:
+    properties:
+      error:
+        $ref: '#/definitions/httpx.errorBody'
+    type: object
+  httpx.FieldError:
+    properties:
+      field:
+        type: string
+      message:
+        type: string
+    type: object
+  httpx.PageMeta:
+    properties:
+      has_more:
+        type: boolean
+      limit:
+        type: integer
+      offset:
+        type: integer
+      total:
+        type: integer
+    type: object
+  httpx.errorBody:
+    properties:
+      code:
+        type: string
+      fields:
+        items:
+          $ref: '#/definitions/httpx.FieldError'
+        type: array
+      message:
+        type: string
+      request_id:
+        type: string
+    type: object
+  payments.Collection:
+    properties:
+      balance:
+        type: string
+      customer_name:
+        type: string
+      due_date:
+        type: string
+      id:
+        type: string
+      installment_no:
+        type: integer
+      interest_balance:
+        type: string
+      late_fee_balance:
+        type: string
+      loan_id:
+        type: string
+      principal_balance:
+        type: string
+      status:
+        type: string
+    type: object
+  payments.Extension:
+    properties:
+      additional_interest:
+        type: string
+      created_at:
+        type: string
+      first_payment_date:
+        type: string
+      id:
+        type: string
+      note:
+        type: string
+    type: object
+info:
+  contact:
+    name: Soporte Préstamos
+  description: |-
+    API multitenant para préstamos personales, clientes, caja y cobros.
+    Las operaciones protegidas aceptan `Authorization: Bearer <access_token>`.
+    La aplicación web también autentica con cookies HttpOnly y exige X-CSRF-Token para mutaciones.
+  title: Préstamos API
+  version: 1.1.0
+paths:
+  /admin/tenants:
+    get:
+      parameters:
+      - description: slug o nombre
+        in: query
+        name: q
+        type: string
+      - description: true|false
+        in: query
+        name: active
+        type: boolean
+      - description: 1-100 (def. 20)
+        in: query
+        name: limit
+        type: integer
+      - description: desplazamiento
+        in: query
+        name: offset
+        type: integer
+      - description: calcular total exacto (más lento)
+        in: query
+        name: include_total
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.TenantPageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Listar empresas (solo superadmin)
+      tags:
+      - admin
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: empresa y owner
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/http.CreateTenantRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/http.CreateTenantResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Crear empresa con su owner (solo superadmin)
+      tags:
+      - admin
+  /admin/tenants/{id}:
+    delete:
+      parameters:
+      - description: ID de la empresa
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: 'Eliminar empresa (soft delete): bloquea sus logins y cierra sus sesiones
+        (solo superadmin)'
+      tags:
+      - admin
+    get:
+      parameters:
+      - description: ID de la empresa
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.TenantDetail'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Obtener empresa con su número de usuarios
+      tags:
+      - admin
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID de la empresa
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: campos a cambiar
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/http.UpdateTenantRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.TenantDetail'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Cambiar nombre y/o estado de la empresa (desactivar corta su acceso)
+      tags:
+      - admin
+  /admin/tenants/{id}/restore:
+    post:
+      parameters:
+      - description: ID de la empresa
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.TenantDetail'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Restaurar empresa eliminada (solo superadmin)
+      tags:
+      - admin
+  /admin/tenants/{id}/users:
+    get:
+      parameters:
+      - description: ID de la empresa
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: correo o nombre
+        in: query
+        name: q
+        type: string
+      - description: true|false
+        in: query
+        name: active
+        type: boolean
+      - description: 1-100 (def. 20)
+        in: query
+        name: limit
+        type: integer
+      - description: desplazamiento
+        in: query
+        name: offset
+        type: integer
+      - description: calcular total exacto (más lento)
+        in: query
+        name: include_total
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.UserPageResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Listar usuarios de una empresa (solo superadmin)
+      tags:
+      - admin
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID de la empresa
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: datos del usuario
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/http.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/http.UserSummary'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Crear usuario en una empresa (solo superadmin)
+      tags:
+      - admin
+  /admin/tenants/{id}/users/{userId}:
+    delete:
+      parameters:
+      - description: ID de la empresa
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: ID del usuario
+        in: path
+        name: userId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: 'Eliminar usuario (soft delete): cierra sus sesiones y bloquea su acceso
+        (solo superadmin)'
+      tags:
+      - admin
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID de la empresa
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: ID del usuario
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: campos a cambiar
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/http.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.UserSummary'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: 'Actualizar usuario: nombre, roles, estado o contraseña (solo superadmin)'
+      tags:
+      - admin
+  /admin/tenants/{id}/users/{userId}/reset-password:
+    post:
+      parameters:
+      - description: ID de empresa
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: ID de usuario
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.TemporaryPasswordResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Restablecer la contraseña de un usuario
+      tags:
+      - admin
+  /admin/tenants/{id}/users/{userId}/restore:
+    post:
+      parameters:
+      - description: ID de la empresa
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: ID del usuario
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.UserSummary'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Restaurar usuario eliminado (solo superadmin)
+      tags:
+      - admin
+  /auth/change-password:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: contraseñas actual y nueva
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/auth.ChangePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Cambiar la contraseña propia y cerrar las sesiones
+      tags:
+      - auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: credenciales
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/auth.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.TokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      summary: Iniciar sesión (híbrido cookie/bearer)
+      tags:
+      - auth
+  /auth/logout:
+    post:
+      responses:
+        "204":
+          description: No Content
+      security:
+      - BearerAuth: []
+      summary: Cerrar sesión (revoca refresh tokens)
+      tags:
+      - auth
+  /auth/me:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.MeResponse'
+      security:
+      - BearerAuth: []
+      summary: Usuario actual
+      tags:
+      - auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: solo clientes bearer
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/auth.RefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.TokenResponse'
+      summary: Rotar refresh token
+      tags:
+      - auth
+  /capital:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.BalanceResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Saldo de la caja (total, capital, utilidad y capital prestado)
+      tags:
+      - capital
+  /capital/movements:
+    get:
+      parameters:
+      - description: 1-100 (def. 20)
+        in: query
+        name: limit
+        type: integer
+      - description: id del último elemento visto (cursor)
+        in: query
+        name: after
+        type: string
+      - description: tipo de movimiento
+        in: query
+        name: type
+        type: string
+      - description: RFC3339; created_at >= from
+        in: query
+        name: from
+        type: string
+      - description: RFC3339; created_at <= to
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.MovementCursorPageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Listar movimientos de caja (paginación por cursor, id DESC)
+      tags:
+      - capital
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: movimiento
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/http.MovementRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/http.MovementResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Registrar movimiento manual de caja (aporte, retiro o ajuste)
+      tags:
+      - capital
+  /collections:
+    get:
+      parameters:
+      - description: all, overdue, today, upcoming
+        in: query
+        name: status
+        type: string
+      - description: Nombre o documento
+        in: query
+        name: q
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.CollectionPageResponse'
+      security:
+      - BearerAuth: []
+      summary: Cuotas por cobrar
+      tags:
+      - Cobros
+  /customers:
+    get:
+      parameters:
+      - description: nombre, documento o teléfono
+        in: query
+        name: q
+        type: string
+      - description: active|inactive|blocked
+        in: query
+        name: status
+        type: string
+      - description: 1-100 (def. 20)
+        in: query
+        name: limit
+        type: integer
+      - description: desplazamiento
+        in: query
+        name: offset
+        type: integer
+      - description: calcular total exacto (más lento)
+        in: query
+        name: include_total
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.CustomerPageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Listar/buscar clientes
+      tags:
+      - customers
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: datos del cliente
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/http.CustomerRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/http.CustomerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Crear cliente
+      tags:
+      - customers
+  /customers/{id}:
+    delete:
+      parameters:
+      - description: ID del cliente
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Eliminar cliente (soft delete, owner/admin). Un cliente eliminado responde
+        404.
+      tags:
+      - customers
+    get:
+      parameters:
+      - description: ID del cliente
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.CustomerResponse'
+      security:
+      - BearerAuth: []
+      summary: Obtener cliente
+      tags:
+      - customers
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID del cliente
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: datos del cliente
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/http.CustomerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.CustomerResponse'
+      security:
+      - BearerAuth: []
+      summary: Actualizar cliente
+      tags:
+      - customers
+  /customers/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID del cliente
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: nuevo estado
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/http.StatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.CustomerResponse'
+      security:
+      - BearerAuth: []
+      summary: Cambiar estado (active/inactive/blocked)
+      tags:
+      - customers
+  /loan-products:
+    get:
+      parameters:
+      - description: texto en el nombre
+        in: query
+        name: q
+        type: string
+      - description: true|false (omitir = todos)
+        in: query
+        name: active
+        type: boolean
+      - description: daily|weekly|biweekly|monthly|single
+        in: query
+        name: frequency
+        type: string
+      - description: 1-100 (def. 20)
+        in: query
+        name: limit
+        type: integer
+      - description: desplazamiento
+        in: query
+        name: offset
+        type: integer
+      - description: calcular total exacto (más lento)
+        in: query
+        name: include_total
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.ProductPageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Listar productos de préstamo
+      tags:
+      - loan-products
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: datos del producto
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/http.ProductRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/http.ProductResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Crear producto de préstamo
+      tags:
+      - loan-products
+  /loan-products/{id}:
+    delete:
+      parameters:
+      - description: ID del producto
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Eliminar producto de préstamo (soft delete, owner/admin)
+      tags:
+      - loan-products
+    get:
+      parameters:
+      - description: ID del producto
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.ProductResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Obtener producto de préstamo
+      tags:
+      - loan-products
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID del producto
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: datos completos del producto
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/http.ProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.ProductResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Reemplazar producto de préstamo (owner/admin)
+      tags:
+      - loan-products
+  /loans:
+    get:
+      parameters:
+      - description: 1-100 (def. 20)
+        in: query
+        name: limit
+        type: integer
+      - description: desplazamiento
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.LoanPageResponse'
+      security:
+      - BearerAuth: []
+      summary: Listar préstamos
+      tags:
+      - prestamos
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Condiciones del préstamo
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/http.request'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/http.loanResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Registrar préstamo pendiente de entrega
+      tags:
+      - prestamos
+  /loans/{id}/disburse:
+    post:
+      parameters:
+      - description: ID del préstamo
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.loanResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Entregar el dinero de un préstamo pendiente
+      tags:
+      - prestamos
+  /loans/{id}/extensions:
+    get:
+      parameters:
+      - description: Préstamo
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.ExtensionPageResponse'
+      security:
+      - BearerAuth: []
+      summary: Historial de ampliaciones
+      tags:
+      - Cobros
+    post:
+      parameters:
+      - description: Préstamo
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Clave del acuerdo
+        in: header
+        name: Idempotency-Key
+        required: true
+        type: string
+      - description: Nueva fecha e interés adicional acordado
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/http.extensionBody'
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/payments.Extension'
+      security:
+      - BearerAuth: []
+      summary: Ampliar el plazo de un préstamo
+      tags:
+      - Cobros
+  /loans/{id}/payments:
+    get:
+      parameters:
+      - description: ID del préstamo
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 1-100 (def. 20)
+        in: query
+        name: limit
+        type: integer
+      - description: desplazamiento
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.PaymentPageResponse'
+      security:
+      - BearerAuth: []
+      summary: Listar pagos de un préstamo
+      tags:
+      - cobros
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID del préstamo
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Clave idempotente única
+        in: header
+        name: Idempotency-Key
+        required: true
+        type: string
+      - description: Pago y medios de recepción
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/http.body'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/http.response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Registrar un pago
+      tags:
+      - cobros
+  /loans/{id}/schedule:
+    get:
+      parameters:
+      - description: ID del préstamo
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.ScheduleListResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Consultar cronograma de cuotas
+      tags:
+      - prestamos
+  /loans/simulate:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Condiciones del préstamo
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/http.request'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.SimulationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Simular cuotas de un préstamo personal
+      tags:
+      - prestamos
+  /settings:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.SettingsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Obtener configuración de la empresa
+      tags:
+      - settings
+    put:
+      consumes:
+      - application/json
+      description: 'Reemplazo total: todos los campos son obligatorios.'
+      parameters:
+      - description: configuración completa
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/http.SettingsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.SettingsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Reemplazar configuración de la empresa (owner/admin)
+      tags:
+      - settings
+schemes:
+- https
+- http
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

@@ -18,6 +18,20 @@ type scheduleResponse struct {
 	LateFeePaid    string `json:"late_fee_paid"`
 }
 
+// ScheduleListResponse documents the schedule of a single loan.
+type ScheduleListResponse struct {
+	Items []scheduleResponse `json:"items"`
+}
+
+// Schedule godoc
+// @Summary Consultar cronograma de cuotas
+// @Tags prestamos
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "ID del préstamo"
+// @Success 200 {object} ScheduleListResponse
+// @Failure 404 {object} httpx.ErrorResponse
+// @Router /loans/{id}/schedule [get]
 func (h *Handler) Schedule(c fiber.Ctx) error {
 	id := c.Params("id")
 	if _, e := uuid.Parse(id); e != nil {

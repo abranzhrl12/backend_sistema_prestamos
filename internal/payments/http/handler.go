@@ -49,6 +49,12 @@ type response struct {
 	Allocations []allocation `json:"allocations"`
 }
 
+// PaymentPageResponse documents the standard paged payment response.
+type PaymentPageResponse struct {
+	Items []response     `json:"items"`
+	Meta  httpx.PageMeta `json:"meta"`
+}
+
 func toResponse(p payments.Payment) response {
 	out := response{ID: p.ID, LoanID: p.LoanID, Amount: p.Amount.StringFixed(4), PaidAt: p.CreatedAt, Status: "valid", Parts: []part{}, Allocations: []allocation{}}
 	for _, v := range p.Parts {
@@ -79,6 +85,20 @@ func mapErr(e error) error {
 		return e
 	}
 }
+
+// Create godoc
+// @Summary Registrar un pago
+// @Tags cobros
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path string true "ID del préstamo"
+// @Param Idempotency-Key header string true "Clave idempotente única"
+// @Param body body body true "Pago y medios de recepción"
+// @Success 201 {object} response
+// @Failure 400 {object} httpx.ErrorResponse
+// @Failure 409 {object} httpx.ErrorResponse
+// @Router /loans/{id}/payments [post]
 func (h *Handler) Create(c fiber.Ctx) error {
 	id := c.Params("id")
 	if _, e := uuid.Parse(id); e != nil {
@@ -121,6 +141,17 @@ func (h *Handler) Create(c fiber.Ctx) error {
 	}
 	return c.Status(201).JSON(toResponse(out))
 }
+
+// List godoc
+// @Summary Listar pagos de un préstamo
+// @Tags cobros
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "ID del préstamo"
+// @Param limit query int false "1-100 (def. 20)"
+// @Param offset query int false "desplazamiento"
+// @Success 200 {object} PaymentPageResponse
+// @Router /loans/{id}/payments [get]
 func (h *Handler) List(c fiber.Ctx) error {
 	id := c.Params("id")
 	if _, e := uuid.Parse(id); e != nil {

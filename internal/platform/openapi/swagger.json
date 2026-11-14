@@ -1,0 +1,3331 @@
+{
+    "schemes": [
+        "https",
+        "http"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "API multitenant para préstamos personales, clientes, caja y cobros.\nLas operaciones protegidas aceptan `Authorization: Bearer \u003caccess_token\u003e`.\nLa aplicación web también autentica con cookies HttpOnly y exige X-CSRF-Token para mutaciones.",
+        "title": "Préstamos API",
+        "contact": {
+            "name": "Soporte Préstamos"
+        },
+        "version": "1.1.0"
+    },
+    "basePath": "/api/v1",
+    "paths": {
+        "/admin/tenants": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Listar empresas (solo superadmin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "slug o nombre",
+                        "name": "q",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "true|false",
+                        "name": "active",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "1-100 (def. 20)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "desplazamiento",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "calcular total exacto (más lento)",
+                        "name": "include_total",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.TenantPageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Crear empresa con su owner (solo superadmin)",
+                "parameters": [
+                    {
+                        "description": "empresa y owner",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.CreateTenantRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/http.CreateTenantResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/tenants/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Obtener empresa con su número de usuarios",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de la empresa",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.TenantDetail"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Eliminar empresa (soft delete): bloquea sus logins y cierra sus sesiones (solo superadmin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de la empresa",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Cambiar nombre y/o estado de la empresa (desactivar corta su acceso)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de la empresa",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "campos a cambiar",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.UpdateTenantRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.TenantDetail"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/tenants/{id}/restore": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Restaurar empresa eliminada (solo superadmin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de la empresa",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.TenantDetail"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/tenants/{id}/users": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Listar usuarios de una empresa (solo superadmin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de la empresa",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "correo o nombre",
+                        "name": "q",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "true|false",
+                        "name": "active",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "1-100 (def. 20)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "desplazamiento",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "calcular total exacto (más lento)",
+                        "name": "include_total",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.UserPageResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Crear usuario en una empresa (solo superadmin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de la empresa",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "datos del usuario",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.CreateUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/http.UserSummary"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/tenants/{id}/users/{userId}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Eliminar usuario (soft delete): cierra sus sesiones y bloquea su acceso (solo superadmin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de la empresa",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID del usuario",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Actualizar usuario: nombre, roles, estado o contraseña (solo superadmin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de la empresa",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID del usuario",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "campos a cambiar",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.UpdateUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.UserSummary"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/tenants/{id}/users/{userId}/reset-password": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Restablecer la contraseña de un usuario",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de empresa",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID de usuario",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.TemporaryPasswordResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/tenants/{id}/users/{userId}/restore": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Restaurar usuario eliminado (solo superadmin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de la empresa",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID del usuario",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.UserSummary"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/change-password": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Cambiar la contraseña propia y cerrar las sesiones",
+                "parameters": [
+                    {
+                        "description": "contraseñas actual y nueva",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.ChangePasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/login": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Iniciar sesión (híbrido cookie/bearer)",
+                "parameters": [
+                    {
+                        "description": "credenciales",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/auth.TokenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Cerrar sesión (revoca refresh tokens)",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/auth/me": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Usuario actual",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/auth.MeResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/refresh": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Rotar refresh token",
+                "parameters": [
+                    {
+                        "description": "solo clientes bearer",
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/auth.RefreshRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/auth.TokenResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/capital": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "capital"
+                ],
+                "summary": "Saldo de la caja (total, capital, utilidad y capital prestado)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.BalanceResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/capital/movements": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "capital"
+                ],
+                "summary": "Listar movimientos de caja (paginación por cursor, id DESC)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "1-100 (def. 20)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "id del último elemento visto (cursor)",
+                        "name": "after",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "tipo de movimiento",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "RFC3339; created_at \u003e= from",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "RFC3339; created_at \u003c= to",
+                        "name": "to",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.MovementCursorPageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "capital"
+                ],
+                "summary": "Registrar movimiento manual de caja (aporte, retiro o ajuste)",
+                "parameters": [
+                    {
+                        "description": "movimiento",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.MovementRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/http.MovementResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/collections": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "Cobros"
+                ],
+                "summary": "Cuotas por cobrar",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "all, overdue, today, upcoming",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Nombre o documento",
+                        "name": "q",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.CollectionPageResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/customers": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customers"
+                ],
+                "summary": "Listar/buscar clientes",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "nombre, documento o teléfono",
+                        "name": "q",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "active|inactive|blocked",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "1-100 (def. 20)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "desplazamiento",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "calcular total exacto (más lento)",
+                        "name": "include_total",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.CustomerPageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customers"
+                ],
+                "summary": "Crear cliente",
+                "parameters": [
+                    {
+                        "description": "datos del cliente",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.CustomerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/http.CustomerResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/customers/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customers"
+                ],
+                "summary": "Obtener cliente",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID del cliente",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.CustomerResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customers"
+                ],
+                "summary": "Actualizar cliente",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID del cliente",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "datos del cliente",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.CustomerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.CustomerResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "customers"
+                ],
+                "summary": "Eliminar cliente (soft delete, owner/admin). Un cliente eliminado responde 404.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID del cliente",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/customers/{id}/status": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customers"
+                ],
+                "summary": "Cambiar estado (active/inactive/blocked)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID del cliente",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "nuevo estado",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.StatusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.CustomerResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/loan-products": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "loan-products"
+                ],
+                "summary": "Listar productos de préstamo",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "texto en el nombre",
+                        "name": "q",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "true|false (omitir = todos)",
+                        "name": "active",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "daily|weekly|biweekly|monthly|single",
+                        "name": "frequency",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "1-100 (def. 20)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "desplazamiento",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "calcular total exacto (más lento)",
+                        "name": "include_total",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.ProductPageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "loan-products"
+                ],
+                "summary": "Crear producto de préstamo",
+                "parameters": [
+                    {
+                        "description": "datos del producto",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.ProductRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/http.ProductResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/loan-products/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "loan-products"
+                ],
+                "summary": "Obtener producto de préstamo",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID del producto",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.ProductResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "loan-products"
+                ],
+                "summary": "Reemplazar producto de préstamo (owner/admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID del producto",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "datos completos del producto",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.ProductRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.ProductResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "loan-products"
+                ],
+                "summary": "Eliminar producto de préstamo (soft delete, owner/admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID del producto",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/loans": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "prestamos"
+                ],
+                "summary": "Listar préstamos",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "1-100 (def. 20)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "desplazamiento",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.LoanPageResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "prestamos"
+                ],
+                "summary": "Registrar préstamo pendiente de entrega",
+                "parameters": [
+                    {
+                        "description": "Condiciones del préstamo",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.request"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/http.loanResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/loans/simulate": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "prestamos"
+                ],
+                "summary": "Simular cuotas de un préstamo personal",
+                "parameters": [
+                    {
+                        "description": "Condiciones del préstamo",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.request"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.SimulationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/loans/{id}/disburse": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "prestamos"
+                ],
+                "summary": "Entregar el dinero de un préstamo pendiente",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID del préstamo",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.loanResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/loans/{id}/extensions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "Cobros"
+                ],
+                "summary": "Historial de ampliaciones",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Préstamo",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.ExtensionPageResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "Cobros"
+                ],
+                "summary": "Ampliar el plazo de un préstamo",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Préstamo",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Clave del acuerdo",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Nueva fecha e interés adicional acordado",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.extensionBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/payments.Extension"
+                        }
+                    }
+                }
+            }
+        },
+        "/loans/{id}/payments": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cobros"
+                ],
+                "summary": "Listar pagos de un préstamo",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID del préstamo",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "1-100 (def. 20)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "desplazamiento",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.PaymentPageResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cobros"
+                ],
+                "summary": "Registrar un pago",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID del préstamo",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Clave idempotente única",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Pago y medios de recepción",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.body"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/http.response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/loans/{id}/schedule": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "prestamos"
+                ],
+                "summary": "Consultar cronograma de cuotas",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID del préstamo",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.ScheduleListResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/settings": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "settings"
+                ],
+                "summary": "Obtener configuración de la empresa",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.SettingsResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Reemplazo total: todos los campos son obligatorios.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "settings"
+                ],
+                "summary": "Reemplazar configuración de la empresa (owner/admin)",
+                "parameters": [
+                    {
+                        "description": "configuración completa",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.SettingsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.SettingsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "auth.ChangePasswordRequest": {
+            "type": "object",
+            "properties": {
+                "current_password": {
+                    "type": "string"
+                },
+                "new_password": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth.LoginRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "admin@acme.com"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "s3cret"
+                },
+                "tenant": {
+                    "type": "string",
+                    "example": "acme"
+                },
+                "transport": {
+                    "description": "cookie (web) | bearer (default)",
+                    "type": "string",
+                    "enum": [
+                        "cookie",
+                        "bearer"
+                    ],
+                    "example": "cookie"
+                }
+            }
+        },
+        "auth.MeResponse": {
+            "type": "object",
+            "properties": {
+                "must_change_password": {
+                    "type": "boolean"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "tenant_id": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth.RefreshRequest": {
+            "type": "object",
+            "properties": {
+                "refresh_token": {
+                    "description": "solo para clientes bearer; web usa cookie",
+                    "type": "string"
+                }
+            }
+        },
+        "auth.TokenResponse": {
+            "type": "object",
+            "properties": {
+                "access_expires_at": {
+                    "type": "string"
+                },
+                "access_token": {
+                    "type": "string"
+                },
+                "refresh_expires_at": {
+                    "type": "string"
+                },
+                "refresh_token": {
+                    "type": "string"
+                },
+                "token_type": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.BalanceResponse": {
+            "type": "object",
+            "properties": {
+                "as_of": {
+                    "type": "string"
+                },
+                "capital_balance": {
+                    "type": "string",
+                    "example": "800.00"
+                },
+                "lent_outstanding": {
+                    "type": "string",
+                    "example": "0.00"
+                },
+                "movements_count": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "profit_balance": {
+                    "type": "string",
+                    "example": "200.00"
+                },
+                "total_cash": {
+                    "type": "string",
+                    "example": "1000.00"
+                }
+            }
+        },
+        "http.CollectionPageResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/payments.Collection"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/httpx.PageMeta"
+                }
+            }
+        },
+        "http.CreateTenantRequest": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "Acme S.A.C."
+                },
+                "owner": {
+                    "$ref": "#/definitions/http.OwnerRequest"
+                },
+                "slug": {
+                    "type": "string",
+                    "example": "acme"
+                }
+            }
+        },
+        "http.CreateTenantResponse": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "boolean"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Acme S.A.C."
+                },
+                "owner": {
+                    "$ref": "#/definitions/http.UserSummary"
+                },
+                "slug": {
+                    "type": "string",
+                    "example": "acme"
+                },
+                "system": {
+                    "type": "boolean"
+                },
+                "temporary_password": {
+                    "type": "string"
+                },
+                "user_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "http.CreateUserRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "cobrador@acme.com"
+                },
+                "full_name": {
+                    "type": "string",
+                    "example": "Luis Torres"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "Secreto12345"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "owner",
+                            "admin",
+                            "cobrador",
+                            "viewer"
+                        ]
+                    }
+                }
+            }
+        },
+        "http.CustomerPageResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/http.CustomerResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/httpx.PageMeta"
+                }
+            }
+        },
+        "http.CustomerRequest": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string",
+                    "example": "Av. Lima 123"
+                },
+                "address_reference": {
+                    "type": "string",
+                    "example": "frente al mercado"
+                },
+                "collector_id": {
+                    "type": "string"
+                },
+                "document_id": {
+                    "type": "string",
+                    "example": "45678912"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string",
+                    "example": "Juan Pérez"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "occupation": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string",
+                    "example": "987654321"
+                },
+                "phone2": {
+                    "type": "string"
+                },
+                "whatsapp": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.CustomerResponse": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string",
+                    "example": "Av. Lima 123"
+                },
+                "address_reference": {
+                    "type": "string",
+                    "example": "frente al mercado"
+                },
+                "collector_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "document_id": {
+                    "type": "string",
+                    "example": "45678912"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string",
+                    "example": "Juan Pérez"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "occupation": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string",
+                    "example": "987654321"
+                },
+                "phone2": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "whatsapp": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.ExtensionPageResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/payments.Extension"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/httpx.PageMeta"
+                }
+            }
+        },
+        "http.LoanPageResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/http.loanResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/httpx.PageMeta"
+                }
+            }
+        },
+        "http.MovementCursorPageResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/http.MovementResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/httpx.CursorMeta"
+                }
+            }
+        },
+        "http.MovementRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "string",
+                    "example": "1000.00"
+                },
+                "note": {
+                    "type": "string",
+                    "example": "Aporte inicial del socio"
+                },
+                "reference": {
+                    "type": "string",
+                    "example": "TRF-0001"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "contribution",
+                        "withdrawal",
+                        "adjustment_in",
+                        "adjustment_out"
+                    ],
+                    "example": "contribution"
+                }
+            }
+        },
+        "http.MovementResponse": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "string",
+                    "example": "300.00"
+                },
+                "bucket": {
+                    "type": "string",
+                    "enum": [
+                        "capital",
+                        "profit"
+                    ]
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "direction": {
+                    "type": "string",
+                    "enum": [
+                        "in",
+                        "out"
+                    ]
+                },
+                "id": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "withdrawal"
+                }
+            }
+        },
+        "http.OwnerRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "owner@acme.com"
+                },
+                "full_name": {
+                    "type": "string",
+                    "example": "Ana Ruiz"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "Secreto12345"
+                }
+            }
+        },
+        "http.PaymentPageResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/http.response"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/httpx.PageMeta"
+                }
+            }
+        },
+        "http.ProductPageResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/http.ProductResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/httpx.PageMeta"
+                }
+            }
+        },
+        "http.ProductRequest": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "boolean"
+                },
+                "amount_max": {
+                    "type": "string",
+                    "example": "5000.00"
+                },
+                "amount_min": {
+                    "type": "string",
+                    "example": "500.00"
+                },
+                "fee_type": {
+                    "type": "string",
+                    "enum": [
+                        "none",
+                        "fixed",
+                        "percent"
+                    ]
+                },
+                "fee_value": {
+                    "type": "string",
+                    "example": "0"
+                },
+                "frequency": {
+                    "type": "string",
+                    "enum": [
+                        "daily",
+                        "weekly",
+                        "biweekly",
+                        "monthly",
+                        "single"
+                    ]
+                },
+                "grace_days": {
+                    "type": "integer"
+                },
+                "interest_type": {
+                    "type": "string",
+                    "enum": [
+                        "flat",
+                        "french",
+                        "german"
+                    ]
+                },
+                "late_fee_amount": {
+                    "type": "string",
+                    "example": "10.00"
+                },
+                "late_fee_mode": {
+                    "type": "string",
+                    "enum": [
+                        "fixed",
+                        "proportional"
+                    ]
+                },
+                "late_fee_per_day": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Préstamo diario"
+                },
+                "rate_default": {
+                    "type": "string",
+                    "example": "2.50"
+                },
+                "rate_max": {
+                    "type": "string",
+                    "example": "5.00"
+                },
+                "rate_min": {
+                    "type": "string",
+                    "example": "1.00"
+                },
+                "rate_period": {
+                    "type": "string",
+                    "enum": [
+                        "daily",
+                        "weekly",
+                        "biweekly",
+                        "monthly",
+                        "annual"
+                    ]
+                },
+                "terms_max": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "terms_min": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "http.ProductResponse": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "boolean"
+                },
+                "amount_max": {
+                    "type": "string"
+                },
+                "amount_min": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "fee_type": {
+                    "type": "string"
+                },
+                "fee_value": {
+                    "type": "string"
+                },
+                "frequency": {
+                    "type": "string"
+                },
+                "grace_days": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "interest_type": {
+                    "type": "string"
+                },
+                "late_fee_amount": {
+                    "type": "string"
+                },
+                "late_fee_mode": {
+                    "type": "string"
+                },
+                "late_fee_per_day": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "rate_default": {
+                    "type": "string"
+                },
+                "rate_max": {
+                    "type": "string"
+                },
+                "rate_min": {
+                    "type": "string"
+                },
+                "rate_period": {
+                    "type": "string"
+                },
+                "terms_max": {
+                    "type": "integer"
+                },
+                "terms_min": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.ScheduleListResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/http.scheduleResponse"
+                    }
+                }
+            }
+        },
+        "http.SettingsRequest": {
+            "type": "object",
+            "properties": {
+                "allocation_order": {
+                    "type": "string",
+                    "enum": [
+                        "late_fee_interest_principal",
+                        "interest_principal_late_fee"
+                    ]
+                },
+                "allow_negative_capital": {
+                    "type": "boolean"
+                },
+                "currency": {
+                    "type": "string",
+                    "enum": [
+                        "PEN",
+                        "USD"
+                    ],
+                    "example": "PEN"
+                },
+                "grace_days": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "late_fee_amount": {
+                    "type": "string",
+                    "example": "10.00"
+                },
+                "late_fee_mode": {
+                    "type": "string",
+                    "enum": [
+                        "fixed",
+                        "proportional"
+                    ]
+                },
+                "late_fee_per_day": {
+                    "type": "boolean"
+                },
+                "max_active_loans_per_customer": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "timezone": {
+                    "type": "string",
+                    "example": "America/Lima"
+                }
+            }
+        },
+        "http.SettingsResponse": {
+            "type": "object",
+            "properties": {
+                "allocation_order": {
+                    "type": "string"
+                },
+                "allow_negative_capital": {
+                    "type": "boolean"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "grace_days": {
+                    "type": "integer"
+                },
+                "is_default": {
+                    "type": "boolean"
+                },
+                "late_fee_amount": {
+                    "type": "string",
+                    "example": "10.00"
+                },
+                "late_fee_mode": {
+                    "type": "string"
+                },
+                "late_fee_per_day": {
+                    "type": "boolean"
+                },
+                "max_active_loans_per_customer": {
+                    "type": "integer"
+                },
+                "timezone": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.SimulationResponse": {
+            "type": "object",
+            "properties": {
+                "schedule": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/http.simulationRow"
+                    }
+                },
+                "total_due": {
+                    "type": "string"
+                },
+                "total_interest": {
+                    "type": "string"
+                },
+                "total_principal": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.StatusRequest": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "active",
+                        "inactive",
+                        "blocked"
+                    ]
+                }
+            }
+        },
+        "http.TemporaryPasswordResponse": {
+            "type": "object",
+            "properties": {
+                "temporary_password": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.TenantDetail": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "boolean"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Acme S.A.C."
+                },
+                "slug": {
+                    "type": "string",
+                    "example": "acme"
+                },
+                "system": {
+                    "type": "boolean"
+                },
+                "user_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "http.TenantPageResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/http.TenantSummary"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/httpx.PageMeta"
+                }
+            }
+        },
+        "http.TenantSummary": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "boolean"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Acme S.A.C."
+                },
+                "slug": {
+                    "type": "string",
+                    "example": "acme"
+                },
+                "system": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "http.UpdateTenantRequest": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Acme Holding"
+                }
+            }
+        },
+        "http.UpdateUserRequest": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "boolean"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "http.UserPageResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/http.UserSummary"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/httpx.PageMeta"
+                }
+            }
+        },
+        "http.UserSummary": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "boolean"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "owner@acme.com"
+                },
+                "full_name": {
+                    "type": "string",
+                    "example": "Ana Ruiz"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "owner"
+                    ]
+                }
+            }
+        },
+        "http.allocation": {
+            "type": "object",
+            "properties": {
+                "interest": {
+                    "type": "string"
+                },
+                "late_fee": {
+                    "type": "string"
+                },
+                "principal": {
+                    "type": "string"
+                },
+                "schedule_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.body": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "distribution": {
+                    "$ref": "#/definitions/http.distributionBody"
+                },
+                "parts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/http.part"
+                    }
+                }
+            }
+        },
+        "http.distributionBody": {
+            "type": "object",
+            "properties": {
+                "interest": {
+                    "type": "string"
+                },
+                "late_fee": {
+                    "type": "string"
+                },
+                "principal": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.extensionBody": {
+            "type": "object",
+            "properties": {
+                "additional_interest": {
+                    "type": "string"
+                },
+                "first_payment_date": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.loanResponse": {
+            "type": "object",
+            "properties": {
+                "annual_rate": {
+                    "type": "string"
+                },
+                "customer_id": {
+                    "type": "string"
+                },
+                "customer_name": {
+                    "type": "string"
+                },
+                "disbursement_date": {
+                    "type": "string"
+                },
+                "frequency": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "interest_type": {
+                    "type": "string"
+                },
+                "interest_value": {
+                    "type": "string"
+                },
+                "principal": {
+                    "type": "string"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "rate": {
+                    "type": "string"
+                },
+                "rate_period": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "term_count": {
+                    "type": "integer"
+                },
+                "term_unit": {
+                    "type": "string"
+                },
+                "term_value": {
+                    "type": "integer"
+                }
+            }
+        },
+        "http.part": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "bank": {
+                    "type": "string"
+                },
+                "method": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.request": {
+            "type": "object",
+            "properties": {
+                "customer_id": {
+                    "type": "string"
+                },
+                "disbursement_date": {
+                    "type": "string"
+                },
+                "first_payment_date": {
+                    "type": "string"
+                },
+                "frequency": {
+                    "type": "string"
+                },
+                "installments_count": {
+                    "type": "integer"
+                },
+                "interest_type": {
+                    "type": "string"
+                },
+                "interest_value": {
+                    "type": "string"
+                },
+                "principal": {
+                    "type": "string"
+                },
+                "term_unit": {
+                    "type": "string"
+                },
+                "term_value": {
+                    "type": "integer"
+                }
+            }
+        },
+        "http.response": {
+            "type": "object",
+            "properties": {
+                "allocations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/http.allocation"
+                    }
+                },
+                "amount": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "loan_id": {
+                    "type": "string"
+                },
+                "paid_at": {
+                    "type": "string"
+                },
+                "parts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/http.part"
+                    }
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.scheduleResponse": {
+            "type": "object",
+            "properties": {
+                "due_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "installment_no": {
+                    "type": "integer"
+                },
+                "interest_due": {
+                    "type": "string"
+                },
+                "interest_paid": {
+                    "type": "string"
+                },
+                "late_fee_accrued": {
+                    "type": "string"
+                },
+                "late_fee_paid": {
+                    "type": "string"
+                },
+                "principal_due": {
+                    "type": "string"
+                },
+                "principal_paid": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.simulationRow": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "type": "string"
+                },
+                "due_date": {
+                    "type": "string"
+                },
+                "installment_no": {
+                    "type": "integer"
+                },
+                "interest_due": {
+                    "type": "string"
+                },
+                "principal_due": {
+                    "type": "string"
+                },
+                "total_due": {
+                    "type": "string"
+                }
+            }
+        },
+        "httpx.CursorMeta": {
+            "type": "object",
+            "properties": {
+                "has_more": {
+                    "type": "boolean"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "next_cursor": {
+                    "type": "string"
+                }
+            }
+        },
+        "httpx.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "$ref": "#/definitions/httpx.errorBody"
+                }
+            }
+        },
+        "httpx.FieldError": {
+            "type": "object",
+            "properties": {
+                "field": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "httpx.PageMeta": {
+            "type": "object",
+            "properties": {
+                "has_more": {
+                    "type": "boolean"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "httpx.errorBody": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/httpx.FieldError"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                },
+                "request_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "payments.Collection": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "type": "string"
+                },
+                "customer_name": {
+                    "type": "string"
+                },
+                "due_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "installment_no": {
+                    "type": "integer"
+                },
+                "interest_balance": {
+                    "type": "string"
+                },
+                "late_fee_balance": {
+                    "type": "string"
+                },
+                "loan_id": {
+                    "type": "string"
+                },
+                "principal_balance": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "payments.Extension": {
+            "type": "object",
+            "properties": {
+                "additional_interest": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "first_payment_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

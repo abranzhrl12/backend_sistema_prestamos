@@ -119,7 +119,7 @@ func (h *Handler) Get(c fiber.Ctx) error {
 // @Param    limit      query int    false "1-100 (def. 20)"
 // @Param    offset     query int    false "desplazamiento"
 // @Param    include_total query bool false "calcular total exacto (más lento)"
-// @Success  200 {object} httpx.Page[ProductResponse]
+// @Success  200 {object} ProductPageResponse
 // @Failure  400 {object} httpx.ErrorResponse
 // @Router   /loan-products [get]
 func (h *Handler) List(c fiber.Ctx) error {

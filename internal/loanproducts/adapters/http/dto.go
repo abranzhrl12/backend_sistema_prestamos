@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"prestamos/internal/loanproducts/domain"
+	"prestamos/internal/platform/httpx"
 )
 
 // ProductRequest es el cuerpo de POST y PUT (PUT reemplaza todo el producto).
@@ -53,6 +54,12 @@ type ProductResponse struct {
 	Active        bool      `json:"active"`
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
+}
+
+// ProductPageResponse documents the standard paged product response.
+type ProductPageResponse struct {
+	Items []ProductResponse `json:"items"`
+	Meta  httpx.PageMeta    `json:"meta"`
 }
 
 func (r ProductRequest) toDomain() domain.Product {

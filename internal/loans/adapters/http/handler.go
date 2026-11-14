@@ -134,6 +134,12 @@ type loanResponse struct {
 	TermUnit         string `json:"term_unit"`
 }
 
+// LoanPageResponse documents the standard paged loan response.
+type LoanPageResponse struct {
+	Items []loanResponse `json:"items"`
+	Meta  httpx.PageMeta `json:"meta"`
+}
+
 func response(l app.Loan) loanResponse {
 	return loanResponse{ID: l.ID, CustomerID: l.CustomerID, CustomerName: l.CustomerName, AnnualRate: l.AnnualRate, ProductID: l.ProductID, Principal: l.Principal, Rate: l.Rate, RatePeriod: l.RatePeriod, InterestType: l.InterestType, Frequency: l.Frequency, TermCount: l.TermCount, Status: l.Status, DisbursementDate: l.DisbursementDate, InterestValue: l.InterestValue, TermValue: l.TermValue, TermUnit: l.TermUnit}
 }
@@ -147,7 +153,15 @@ type simulationRow struct {
 	Balance   string `json:"balance"`
 }
 
-func simulation(rows []schedule.Installment) fiber.Map {
+// SimulationResponse documents the calculated schedule before it is recorded.
+type SimulationResponse struct {
+	Schedule       []simulationRow `json:"schedule"`
+	TotalPrincipal string          `json:"total_principal"`
+	TotalInterest  string          `json:"total_interest"`
+	TotalDue       string          `json:"total_due"`
+}
+
+func simulation(rows []schedule.Installment) SimulationResponse {
 	result := make([]simulationRow, 0, len(rows))
 	principal, interest := decimal.Zero, decimal.Zero
 	for _, r := range rows {
@@ -155,8 +169,19 @@ func simulation(rows []schedule.Installment) fiber.Map {
 		interest = interest.Add(r.Interest)
 		result = append(result, simulationRow{r.Number, r.DueDate.Format("2006-01-02"), r.Principal.StringFixed(4), r.Interest.StringFixed(4), r.Principal.Add(r.Interest).StringFixed(4), r.Balance.StringFixed(4)})
 	}
-	return fiber.Map{"schedule": result, "total_principal": principal.StringFixed(4), "total_interest": interest.StringFixed(4), "total_due": principal.Add(interest).StringFixed(4)}
+	return SimulationResponse{Schedule: result, TotalPrincipal: principal.StringFixed(4), TotalInterest: interest.StringFixed(4), TotalDue: principal.Add(interest).StringFixed(4)}
 }
+
+// Simulate godoc
+// @Summary Simular cuotas de un préstamo personal
+// @Tags prestamos
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param body body request true "Condiciones del préstamo"
+// @Success 200 {object} SimulationResponse
+// @Failure 400 {object} httpx.ErrorResponse
+// @Router /loans/simulate [post]
 func (h *Handler) Simulate(c fiber.Ctx) error {
 	r, e := bind(c)
 	if e != nil {
@@ -168,6 +193,18 @@ func (h *Handler) Simulate(c fiber.Ctx) error {
 	}
 	return c.JSON(simulation(rows))
 }
+
+// Create godoc
+// @Summary Registrar préstamo pendiente de entrega
+// @Tags prestamos
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param body body request true "Condiciones del préstamo"
+// @Success 201 {object} loanResponse
+// @Failure 400 {object} httpx.ErrorResponse
+// @Failure 409 {object} httpx.ErrorResponse
+// @Router /loans [post]
 func (h *Handler) Create(c fiber.Ctx) error {
 	r, e := bind(c)
 	if e != nil {
@@ -188,6 +225,16 @@ func (h *Handler) Create(c fiber.Ctx) error {
 	}
 	return c.Status(201).JSON(response(out))
 }
+
+// Disburse godoc
+// @Summary Entregar el dinero de un préstamo pendiente
+// @Tags prestamos
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "ID del préstamo"
+// @Success 200 {object} loanResponse
+// @Failure 409 {object} httpx.ErrorResponse
+// @Router /loans/{id}/disburse [post]
 func (h *Handler) Disburse(c fiber.Ctx) error {
 	id := c.Params("id")
 	if _, e := uuid.Parse(id); e != nil {
@@ -199,6 +246,16 @@ func (h *Handler) Disburse(c fiber.Ctx) error {
 	}
 	return c.JSON(response(l))
 }
+
+// List godoc
+// @Summary Listar préstamos
+// @Tags prestamos
+// @Security BearerAuth
+// @Produce json
+// @Param limit query int false "1-100 (def. 20)"
+// @Param offset query int false "desplazamiento"
+// @Success 200 {object} LoanPageResponse
+// @Router /loans [get]
 func (h *Handler) List(c fiber.Ctx) error {
 	p, e := httpx.ParsePage(c)
 	if e != nil {
