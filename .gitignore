@@ -1,0 +1,9 @@
+.env
+*.exe
+/bin/
+/tmp/
+.agents/codegraph/
+.agents/
+.codex/
+.env.*
+!.env.example

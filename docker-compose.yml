@@ -1,0 +1,26 @@
+# BD de DESARROLLO (persistente en el volumen pgdata). Para pruebas e2e/perf usar docker-compose.test.yml.
+#   docker compose up -d --wait
+#   go run ./cmd/migrate up
+name: prestamos-dev
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: prestamos
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Solo se ejecuta al crear el volumen por primera vez (crea el rol app_user).
+      - ./docker/init-dev.sql:/docker-entrypoint-initdb.d/init-dev.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d prestamos"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  pgdata:
